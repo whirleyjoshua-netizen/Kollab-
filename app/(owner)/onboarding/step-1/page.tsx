@@ -1,34 +1,35 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { OnboardingShell } from '@/components/owner/onboarding-shell';
 import { createClient } from '@/lib/supabase/server';
+import { Step1Form } from './step-1-form';
 
 export default async function OnboardingStep1Page() {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect('/login');
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) redirect('/login');
+
+  const { data: owner } = await supabase
+    .from('owners')
+    .select('business_name, cta_text, accent_color, branding_complete')
+    .eq('id', userData.user.id)
+    .single();
+
+  // If onboarding already complete, send to dashboard.
+  if (owner?.branding_complete) redirect('/dashboard');
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to Kollab — Step 1 of 3</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-muted-foreground">
-            Business basics will go here in Phase B.
-          </p>
-          <p className="text-xs text-muted-foreground font-mono">
-            user.id = {data.user.id}
-          </p>
-          <Link
-            href="/dashboard"
-            className="text-sm underline text-muted-foreground"
-          >
-            Skip to dashboard (placeholder)
-          </Link>
-        </CardContent>
-      </Card>
-    </main>
+    <OnboardingShell
+      step={1}
+      title="Tell us about your business"
+      description="Customers see this on the page they land on after scanning your QR code."
+    >
+      <Step1Form
+        defaults={{
+          business_name: owner?.business_name ?? '',
+          cta_text: owner?.cta_text ?? null,
+          accent_color: owner?.accent_color ?? '#111111',
+        }}
+      />
+    </OnboardingShell>
   );
 }
