@@ -26,11 +26,13 @@ export default async function CustomerLanding({ params }: Params) {
   const admin = createAdminClient();
   const { data: owner } = await admin
     .from('owners')
-    .select('business_name, accent_color, cta_text, logo_path')
+    .select('business_name, accent_color, cta_text, logo_path, branding_complete')
     .eq('id', qr.owner_id)
     .maybeSingle();
 
-  if (!owner) {
+  // Don't render for partially-onboarded owners — protects against an attacker
+  // discovering a QR id before the owner finished setup.
+  if (!owner || !owner.branding_complete) {
     notFound();
   }
 
