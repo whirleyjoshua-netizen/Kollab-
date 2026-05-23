@@ -102,6 +102,13 @@ export type Database = {
             foreignKeyName: "qr_codes_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
+            referencedRelation: "owner_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_codes_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "owners"
             referencedColumns: ["id"]
           },
@@ -170,6 +177,13 @@ export type Database = {
             foreignKeyName: "videos_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
+            referencedRelation: "owner_branding"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "owners"
             referencedColumns: ["id"]
           },
@@ -184,7 +198,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      owner_branding: {
+        Row: {
+          accent_color: string | null
+          branding_complete: boolean | null
+          business_name: string | null
+          cta_text: string | null
+          id: string | null
+          logo_path: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          branding_complete?: boolean | null
+          business_name?: string | null
+          cta_text?: string | null
+          id?: string | null
+          logo_path?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          branding_complete?: boolean | null
+          business_name?: string | null
+          cta_text?: string | null
+          id?: string | null
+          logo_path?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
