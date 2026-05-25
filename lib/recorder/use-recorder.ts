@@ -104,14 +104,13 @@ export function useRecorder(mimeType: string) {
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
 
-    // Orientation check — bail if the natural sensor orientation is landscape.
+    // Get track settings for the result blob's dimensions.
+    // Note: we used to error if sensor reported landscape, but back cameras
+    // on phones have landscape-native sensors even when held portrait — the
+    // OS rotates the image downstream. The video element renders correctly
+    // regardless, so we skip the sensor-orientation check.
     const videoTrack = streamRef.current.getVideoTracks()[0];
     const settings = videoTrack?.getSettings();
-    if (settings?.width && settings?.height && settings.width > settings.height) {
-      setError({ kind: 'orientation' });
-      setState('error');
-      return;
-    }
 
     chunksRef.current = [];
     const recorder = new MediaRecorder(streamRef.current, {
