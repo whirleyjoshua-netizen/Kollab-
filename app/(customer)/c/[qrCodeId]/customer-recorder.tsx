@@ -309,10 +309,16 @@ function RecordingStage({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Wire the live preview once. attachPreview is a stable useCallback inside
+  // useRecorder; depending on the whole `recorder` object would re-run this
+  // effect on every render (which detaches and re-attaches the stream — the
+  // root cause of black flickering during recording). The recorder hook
+  // detaches the stream itself on unmount via its own cleanup, so no return
+  // cleanup is needed here.
+  const attachPreview = recorder.attachPreview;
   useEffect(() => {
-    recorder.attachPreview(videoRef.current);
-    return () => recorder.attachPreview(null);
-  }, [recorder]);
+    attachPreview(videoRef.current);
+  }, [attachPreview]);
 
   const ringPercent = Math.min(100, (recorder.elapsedMs / 30_000) * 100);
 
