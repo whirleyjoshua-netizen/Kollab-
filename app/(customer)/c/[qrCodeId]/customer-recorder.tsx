@@ -319,7 +319,10 @@ function RecordingStage({
   return (
     <CenterPage>
       <BrandingHeader branding={branding} compact />
-      <div className="relative w-full max-w-xs aspect-[9/16] overflow-hidden rounded-lg bg-black">
+      <div
+        className="relative w-full max-w-xs overflow-hidden rounded-lg bg-black"
+        style={{ maxHeight: '70vh', aspectRatio: '9 / 16' }}
+      >
         <video
           ref={videoRef}
           autoPlay
@@ -328,37 +331,41 @@ function RecordingStage({
           className="h-full w-full object-cover"
         />
         {recorder.state === 'recording' && (
-          <div className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1 text-xs font-semibold text-white">
-            <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-            {Math.floor(recorder.elapsedMs / 1000)}s / 30s
-          </div>
+          <>
+            <div className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1 text-xs font-semibold text-white">
+              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+              {Math.floor(recorder.elapsedMs / 1000)}s / 30s
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+              <div
+                className="h-full transition-[width] duration-100"
+                style={{ width: `${ringPercent}%`, backgroundColor: branding.accentColor }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => recorder.stopRecording()}
+              aria-label="Stop recording"
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 h-16 w-16 rounded-full bg-white shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <span className="h-6 w-6 rounded-sm bg-red-600" />
+            </button>
+          </>
         )}
       </div>
-      {recorder.state === 'recording' && (
-        <>
-          <div className="h-1 w-full max-w-xs rounded-full bg-muted">
-            <div
-              className="h-full rounded-full"
-              style={{ width: `${ringPercent}%`, backgroundColor: branding.accentColor }}
-            />
-          </div>
-          <Button
-            onClick={() => recorder.stopRecording()}
-            variant="outline"
-            size="lg"
-          >
-            Stop
-          </Button>
-        </>
-      )}
       {showStartButton && recorder.state === 'ready' && (
-        <Button
+        <button
+          type="button"
           onClick={onStart}
-          className="rounded-md px-8 py-3 text-base font-medium text-white"
-          style={{ backgroundColor: branding.accentColor }}
+          aria-label="Start recording"
+          className="h-20 w-20 rounded-full bg-white border-4 flex items-center justify-center active:scale-95 transition-transform"
+          style={{ borderColor: branding.accentColor }}
         >
-          Record
-        </Button>
+          <span
+            className="h-12 w-12 rounded-full"
+            style={{ backgroundColor: branding.accentColor }}
+          />
+        </button>
       )}
       {recorder.error?.kind === 'orientation' && (
         <p className="text-sm text-red-700">Please hold your phone upright (portrait).</p>

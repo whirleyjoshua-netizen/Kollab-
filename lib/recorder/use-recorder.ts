@@ -75,7 +75,7 @@ export function useRecorder(mimeType: string) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: 'user',
+          facingMode: { ideal: 'environment' }, // back camera — better for food/venue
           width: { ideal: 1080 },
           height: { ideal: 1920 },
           aspectRatio: { ideal: 9 / 16 },
