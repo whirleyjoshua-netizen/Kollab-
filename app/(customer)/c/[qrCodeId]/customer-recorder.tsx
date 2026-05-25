@@ -6,7 +6,7 @@ import { DesktopPrompt } from '@/components/customer/desktop-prompt';
 import { PermissionDenied } from '@/components/customer/permission-denied';
 import { UnsupportedBrowser } from '@/components/customer/unsupported-browser';
 import { renderConsentText } from '@/lib/consent';
-import { detectBrowserSupport, looksLikeDesktop } from '@/lib/recorder/browser-support';
+import { detectBrowserSupport, looksLikeDesktop, type BrowserSupport } from '@/lib/recorder/browser-support';
 import { captureThumbnail } from '@/lib/recorder/capture-thumbnail';
 import { useRecorder } from '@/lib/recorder/use-recorder';
 import { useUpload } from '@/lib/upload/use-upload';
@@ -27,12 +27,28 @@ type CustomerRecorderProps = {
 };
 
 export function CustomerRecorder({ qrCodeId, locationLabel, branding }: CustomerRecorderProps) {
-  const support = useMemo(() => detectBrowserSupport(), []);
-  const isDesktop = useMemo(() => looksLikeDesktop(), []);
+  // Browser feature detection MUST run on the client only — it inspects navigator
+  // and window which don't exist during SSR. Using useState+useEffect (not useMemo)
+  // so the SSR'd HTML shows a neutral loading state, and the real detection runs
+  // after hydration.
+  const [support, setSupport] = useState<BrowserSupport | null>(null);
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
 
-  const [stage, setStage] = useState<Stage>(() => (isDesktop ? 'desktop' : 'landing'));
-  const recorder = useRecorder(support.kind === 'ok' ? support.mimeType : 'video/webm');
+  useEffect(() => {
+    setSupport(detectBrowserSupport());
+    setIsDesktop(looksLikeDesktop());
+  }, []);
+
+  const [stage, setStage] = useState<Stage>('landing');
+  const recorder = useRecorder(support?.kind === 'ok' ? support.mimeType : 'video/webm');
   const upload = useUpload();
+
+  // When detection finishes and we discover the user is on desktop, hop to that stage.
+  useEffect(() => {
+    if (isDesktop === true && stage === 'landing') {
+      setStage('desktop');
+    }
+  }, [isDesktop, stage]);
 
   // When recorder produces a result, move to preview.
   useEffect(() => {
@@ -55,6 +71,16 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
   );
 
   // ---------- Branches that short-circuit the normal flow ----------
+
+  // While detection is running on the client (just after hydration), show the
+  // branding so the page doesn't flash an "unsupported" message before we know.
+  if (support === null) {
+    return (
+      <CenterPage>
+        <BrandingHeader branding={branding} locationLabel={locationLabel} />
+      </CenterPage>
+    );
+  }
 
   if (support.kind !== 'ok') {
     return (
