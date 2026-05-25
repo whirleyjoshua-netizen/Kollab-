@@ -26,11 +26,14 @@ export type RecorderResult = {
   height: number;
 };
 
+export type FacingMode = 'user' | 'environment';
+
 export function useRecorder(mimeType: string) {
   const [state, setState] = useState<RecorderState>('idle');
   const [error, setError] = useState<RecorderError | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [result, setResult] = useState<RecorderResult | null>(null);
+  const [facingMode, setFacingMode] = useState<FacingMode>('environment');
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -69,13 +72,20 @@ export function useRecorder(mimeType: string) {
     return () => cleanup();
   }, [cleanup]);
 
-  const requestPermission = useCallback(async () => {
+  const requestPermission = useCallback(async (mode: FacingMode = 'environment') => {
     setError(null);
     setState('requesting-permission');
+
+    // If there's an existing stream (e.g., camera switch), stop its tracks first.
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: 'environment' }, // back camera — better for food/venue
+          facingMode: { ideal: mode },
           width: { ideal: 1080 },
           height: { ideal: 1920 },
           aspectRatio: { ideal: 9 / 16 },
@@ -87,6 +97,7 @@ export function useRecorder(mimeType: string) {
       if (videoElRef.current) {
         videoElRef.current.srcObject = stream;
       }
+      setFacingMode(mode);
       setState('ready');
     } catch (err) {
       const e = err as DOMException;
@@ -100,6 +111,13 @@ export function useRecorder(mimeType: string) {
       setState('error');
     }
   }, []);
+
+  const switchCamera = useCallback(async () => {
+    // Only allow switching while the camera is ready and not actively recording.
+    if (state !== 'ready') return;
+    const next: FacingMode = facingMode === 'environment' ? 'user' : 'environment';
+    await requestPermission(next);
+  }, [facingMode, requestPermission, state]);
 
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
@@ -178,8 +196,10 @@ export function useRecorder(mimeType: string) {
     error,
     elapsedMs,
     result,
+    facingMode,
     attachPreview,
     requestPermission,
+    switchCamera,
     startRecording,
     stopRecording,
     reset,

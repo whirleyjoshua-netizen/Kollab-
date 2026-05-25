@@ -336,6 +336,29 @@ function RecordingStage({
           muted
           className="h-full w-full object-cover"
         />
+        {recorder.state === 'ready' && (
+          <button
+            type="button"
+            onClick={() => void recorder.switchCamera()}
+            aria-label="Switch camera"
+            className="absolute top-3 right-3 h-10 w-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white active:scale-95 transition-transform"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5"
+            >
+              <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2-2h6l2 2h2a2 2 0 0 1 2 2v6" />
+              <path d="m18 22 4-4-4-4" />
+              <path d="M22 18h-7a2 2 0 0 1-2-2v-2" />
+            </svg>
+          </button>
+        )}
         {recorder.state === 'recording' && (
           <>
             <div className="absolute top-3 left-3 flex items-center gap-2 rounded-full bg-red-600/90 px-3 py-1 text-xs font-semibold text-white">
