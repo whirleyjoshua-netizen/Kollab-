@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { createAnonClient } from '@/lib/supabase/anon';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { DynamicCustomerRecorder } from './dynamic-customer-recorder';
+import { CustomerRecorder } from './customer-recorder';
 
 type Params = { params: Promise<{ qrCodeId: string }> };
 
@@ -44,7 +44,7 @@ export default async function CustomerLanding({ params }: Params) {
   }
 
   return (
-    <DynamicCustomerRecorder
+    <CustomerRecorder
       qrCodeId={qr.id}
       locationLabel={qr.location_label}
       branding={{
