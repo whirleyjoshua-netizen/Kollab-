@@ -3,9 +3,17 @@
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
+import { FormattedDate } from '@/components/formatted-date';
 import { StatusBadge } from '@/components/owner/status-badge';
 import type { InboxPage, InboxVideo } from '@/lib/videos/list';
 import { loadMoreInbox } from './inbox-actions';
+
+const TILE_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+};
 
 type InboxGridProps = {
   initial: InboxPage;
@@ -54,13 +62,6 @@ export function InboxGrid({ initial }: InboxGridProps) {
 }
 
 function InboxTile({ video }: { video: InboxVideo }) {
-  const date = new Date(video.createdAt);
-  const dateLabel = date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
   const durationLabel =
     video.durationMs && video.durationMs > 0
       ? `${Math.round(video.durationMs / 1000)}s`
@@ -95,7 +96,11 @@ function InboxTile({ video }: { video: InboxVideo }) {
         )}
       </div>
       <div className="p-2 text-xs bg-white text-foreground">
-        <div className="truncate">{dateLabel}</div>
+        <FormattedDate
+          isoString={video.createdAt}
+          options={TILE_DATE_OPTIONS}
+          className="truncate block"
+        />
         {video.locationLabel && (
           <div className="truncate text-muted-foreground">{video.locationLabel}</div>
         )}

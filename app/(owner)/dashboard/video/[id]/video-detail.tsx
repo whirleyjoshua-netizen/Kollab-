@@ -4,9 +4,18 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
+import { FormattedDate } from '@/components/formatted-date';
 import { StatusBadge } from '@/components/owner/status-badge';
 import type { Database } from '@/lib/db/types';
 import { getDownloadUrl, softDeleteVideo, updateStatus } from './actions';
+
+const DETAIL_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+};
 
 type Status = Database['public']['Enums']['video_status'];
 
@@ -31,14 +40,6 @@ export function VideoDetail({ video, businessName }: VideoDetailProps) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const date = new Date(video.createdAt);
-  const dateLabel = date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
   const sizeLabel =
     video.sizeBytes && video.sizeBytes > 0
       ? `${(video.sizeBytes / (1024 * 1024)).toFixed(1)} MB`
@@ -114,7 +115,11 @@ export function VideoDetail({ video, businessName }: VideoDetailProps) {
         <aside className="flex flex-col gap-4">
           <div className="rounded-md border bg-white p-4">
             <h3 className="text-sm font-medium text-muted-foreground">Submitted</h3>
-            <p className="text-sm">{dateLabel}</p>
+            <FormattedDate
+              isoString={video.createdAt}
+              options={DETAIL_DATE_OPTIONS}
+              className="text-sm block"
+            />
             {video.locationLabel && (
               <p className="text-sm text-muted-foreground">{video.locationLabel}</p>
             )}
