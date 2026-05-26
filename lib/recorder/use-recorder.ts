@@ -184,6 +184,13 @@ export function useRecorder(mimeType: string) {
     if (tickTimerRef.current) clearInterval(tickTimerRef.current);
   }, []);
 
+  /**
+   * Reset internal state so the next recording can begin. NOTE: this does
+   * NOT re-acquire the camera stream. If cleanup() ran (e.g., on a stream
+   * error or after permission was revoked), call requestPermission() again
+   * before startRecording(). The customer recorder's Retake path does this
+   * sequence; new flows should follow the same pattern.
+   */
   const reset = useCallback(() => {
     setResult(null);
     setError(null);
