@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
@@ -44,11 +45,19 @@ export default async function DashboardPage() {
             <h1 className="text-lg font-semibold">{owner.business_name}</h1>
             <span className="text-xs text-muted-foreground">Inbox</span>
           </div>
-          <form action={signOut}>
-            <Button type="submit" variant="outline" size="sm">
-              Sign out
-            </Button>
-          </form>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/settings"
+              className="text-sm underline text-muted-foreground hover:text-foreground"
+            >
+              Settings
+            </Link>
+            <form action={signOut}>
+              <Button type="submit" variant="outline" size="sm">
+                Sign out
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
 
