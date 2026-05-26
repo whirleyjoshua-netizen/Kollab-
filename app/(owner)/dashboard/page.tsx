@@ -1,7 +1,11 @@
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
+import { fetchInboxPage } from '@/lib/videos/list';
+import { getQrCodeUrl } from '@/lib/qr';
 import { signOut } from './actions';
+import { InboxGrid } from './inbox-grid';
+import { InboxEmpty } from './inbox-empty';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,7 +17,7 @@ export default async function DashboardPage() {
 
   const { data: owner } = await supabase
     .from('owners')
-    .select('branding_complete')
+    .select('business_name, branding_complete')
     .eq('id', userData.user.id)
     .single();
 
@@ -21,20 +25,49 @@ export default async function DashboardPage() {
     redirect('/onboarding/step-1');
   }
 
+  // Get the owner's default QR (for empty-state guidance + customer URL preview).
+  const { data: defaultQr } = await supabase
+    .from('qr_codes')
+    .select('id')
+    .eq('owner_id', userData.user.id)
+    .eq('is_default', true)
+    .is('archived_at', null)
+    .maybeSingle();
+
+  const initialPage = await fetchInboxPage(0);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-3xl font-semibold">Dashboard</h1>
-      <p className="text-muted-foreground">
-        Signed in as <span className="font-mono">{userData.user.email}</span>
-      </p>
-      <p className="text-xs text-muted-foreground font-mono">
-        user.id = {userData.user.id}
-      </p>
-      <form action={signOut}>
-        <Button type="submit" variant="outline">
-          Sign out
-        </Button>
-      </form>
+    <main className="min-h-screen bg-zinc-50">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-lg font-semibold">{owner.business_name}</h1>
+            <span className="text-xs text-muted-foreground">Inbox</span>
+          </div>
+          <form action={signOut}>
+            <Button type="submit" variant="outline" size="sm">
+              Sign out
+            </Button>
+          </form>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        {initialPage.videos.length === 0 ? (
+          defaultQr ? (
+            <InboxEmpty
+              qrCodeId={defaultQr.id}
+              customerUrl={getQrCodeUrl(defaultQr.id)}
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No QR code found. Try refreshing — your default QR is created during onboarding.
+            </p>
+          )
+        ) : (
+          <InboxGrid initial={initialPage} />
+        )}
+      </div>
     </main>
   );
 }
