@@ -15,6 +15,9 @@ type BrandingFormProps = {
 };
 
 export function BrandingForm({ defaults }: BrandingFormProps) {
+  const [businessName, setBusinessName] = useState(defaults.business_name);
+  const [ctaText, setCtaText] = useState(defaults.cta_text ?? '');
+  const [accentColor, setAccentColor] = useState(defaults.accent_color);
   const [result, setResult] = useState<SettingsResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -35,7 +38,8 @@ export function BrandingForm({ defaults }: BrandingFormProps) {
           name="business_name"
           required
           maxLength={80}
-          defaultValue={defaults.business_name}
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
           disabled={isPending}
         />
       </div>
@@ -46,7 +50,8 @@ export function BrandingForm({ defaults }: BrandingFormProps) {
           id="cta_text"
           name="cta_text"
           maxLength={120}
-          defaultValue={defaults.cta_text ?? ''}
+          value={ctaText}
+          onChange={(e) => setCtaText(e.target.value)}
           placeholder="Share up to 30 seconds of your experience"
           disabled={isPending}
         />
@@ -63,12 +68,13 @@ export function BrandingForm({ defaults }: BrandingFormProps) {
             name="accent_color"
             type="color"
             required
-            defaultValue={defaults.accent_color}
+            value={accentColor}
+            onChange={(e) => setAccentColor(e.target.value)}
             disabled={isPending}
             className="h-10 w-16 cursor-pointer p-1"
           />
           <code className="text-xs text-muted-foreground font-mono">
-            {defaults.accent_color}
+            {accentColor}
           </code>
         </div>
       </div>
