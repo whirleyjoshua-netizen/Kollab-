@@ -22,14 +22,19 @@ export default function HomePage() {
 
 function Nav() {
   return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[#FAFAFA]/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-3">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Kollab
+    <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[#FAFAFA]/85 backdrop-blur">
+      <div className="flex items-center justify-between gap-4 px-6 lg:px-10 py-2">
+        <Link href="/" className="flex items-center" aria-label="Kollabshare home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Kollabshare"
+            className="h-10 sm:h-12 w-auto"
+          />
         </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm text-[#475569]">
+        <nav className="hidden md:flex items-center gap-8 text-sm text-[#475569]">
           <a href="#how-it-works" className="hover:text-[#0F172A] transition-colors">How it works</a>
-          <a href="#who-its-for" className="hover:text-[#0F172A] transition-colors">Who it's for</a>
+          <a href="#who-its-for" className="hover:text-[#0F172A] transition-colors">Who it&apos;s for</a>
           <a href="#pricing" className="hover:text-[#0F172A] transition-colors">Pricing</a>
         </nav>
         <div className="flex items-center gap-2">
