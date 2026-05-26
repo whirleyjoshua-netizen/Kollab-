@@ -48,9 +48,10 @@ export function useUpload(): UploadHook {
         const j = await safeJson(signRes);
         throw new Error(j?.error ?? `Sign failed (${signRes.status})`);
       }
-      const { videoId, uploadUrl } = (await signRes.json()) as {
+      const { videoId, uploadUrl, finalizeToken } = (await signRes.json()) as {
         videoId: string;
         uploadUrl: string;
+        finalizeToken: string;
       };
 
       // 2. Upload via XHR (so we get progress events)
@@ -85,6 +86,7 @@ export function useUpload(): UploadHook {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           thumbnailDataUrl: input.thumbnailDataUrl,
+          finalizeToken,
         }),
       });
       if (!finRes.ok) {

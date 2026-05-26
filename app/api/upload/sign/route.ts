@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { renderConsentText } from '@/lib/consent';
+import { issueFinalizeToken } from '@/lib/upload/finalize-token';
 
 const MAX_BYTES = 50 * 1024 * 1024;        // 50MB hard cap
 const MAX_DURATION_MS = 31_000;             // 30s + 1s grace
@@ -117,11 +118,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const finalizeToken = issueFinalizeToken(video.id);
+
   return NextResponse.json({
     videoId: video.id,
     storagePath,
     uploadUrl: signed.signedUrl,
-    token: signed.token,
+    uploadToken: signed.token,
+    finalizeToken,
   });
 }
 

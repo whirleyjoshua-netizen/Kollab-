@@ -1,9 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { verifyFinalizeToken } from '@/lib/upload/finalize-token';
 
 const RequestSchema = z.object({
   thumbnailDataUrl: z.string().regex(/^data:image\/jpeg;base64,/),
+  finalizeToken: z.string().min(1),
 });
 
 type Params = { params: Promise<{ id: string }> };
@@ -24,6 +26,10 @@ export async function POST(request: NextRequest, { params }: Params) {
       { error: parsed.error.issues[0]?.message ?? 'Invalid request' },
       { status: 400 }
     );
+  }
+
+  if (!verifyFinalizeToken(id, parsed.data.finalizeToken)) {
+    return NextResponse.json({ error: 'Invalid or expired finalize token' }, { status: 401 });
   }
 
   const admin = createAdminClient();
