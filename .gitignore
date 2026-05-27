@@ -44,3 +44,14 @@ next-env.d.ts
 supabase/.temp/
 
 .vercel
+
+# Local secrets / scratch — never commit any plaintext keys
+**/*api*key*
+**/*secret*
+**/*credentials*
+*.key
+*.pem
+
+# Local editor / tool config (shouldn't be in the repo)
+.claude/
+keys.txt
