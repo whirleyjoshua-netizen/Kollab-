@@ -23,13 +23,14 @@ export default function HomePage() {
 function Nav() {
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[#FAFAFA]/85 backdrop-blur">
-      <div className="flex items-center justify-between gap-4 px-6 lg:px-10 py-2">
+      <div className="flex items-center justify-between gap-4 px-6 lg:px-10 py-1">
         <Link href="/" className="flex items-center" aria-label="Kollabshare home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt="Kollabshare"
-            className="h-10 sm:h-12 w-auto"
+            className="h-16 sm:h-20 w-auto"
+            style={{ mixBlendMode: 'multiply' }}
           />
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm text-[#475569]">
@@ -64,8 +65,8 @@ function Nav() {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-24 lg:pt-24 lg:pb-32">
-        <div className="grid gap-12 lg:grid-cols-[1.1fr,1fr] lg:items-center">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 pb-16 lg:pt-14 lg:pb-20">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr,1fr] lg:items-center">
           {/* Copy */}
           <div className="flex flex-col gap-6 max-w-2xl">
             <div className="inline-flex items-center gap-2 self-start rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-[#475569]">
@@ -171,13 +172,13 @@ function HowItWorks() {
   ];
 
   return (
-    <section id="how-it-works" className="border-t border-zinc-200 bg-white py-20 lg:py-28">
+    <section id="how-it-works" className="border-t border-zinc-200 bg-white py-14 lg:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-col items-center text-center mb-14">
+        <div className="flex flex-col items-center text-center mb-10">
           <span className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-3">
             How it works
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight max-w-2xl leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight max-w-2xl leading-tight">
             From a printed QR to a video in your inbox in under a minute.
           </h2>
         </div>
@@ -210,14 +211,14 @@ function HowItWorks() {
 
 function UseCases() {
   return (
-    <section id="who-its-for" className="border-t border-zinc-200 bg-[#FAFAFA] py-20 lg:py-28">
+    <section id="who-its-for" className="border-t border-zinc-200 bg-[#FAFAFA] py-14 lg:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-col items-center text-center mb-14">
+        <div className="flex flex-col items-center text-center mb-10">
           <span className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-3">
             Who it&apos;s for
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight max-w-3xl leading-tight">
-            Built for the moments people actually want to share.
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight max-w-3xl leading-tight">
+            Built for the moments people want to share.
           </h2>
         </div>
 
@@ -242,14 +243,9 @@ function UseCases() {
           />
         </div>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-2 text-xs text-[#475569]">
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">Also great for: concerts</span>
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">sports games</span>
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">conferences</span>
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">launches</span>
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">festivals</span>
-          <span className="rounded-full border border-zinc-200 bg-white px-3 py-1">venues</span>
-        </div>
+        <p className="mt-8 text-center text-sm text-[#475569]">
+          Also great for concerts · sports games · conferences · launches · festivals · venues
+        </p>
       </div>
     </section>
   );
@@ -291,13 +287,13 @@ function UseCaseCard({
 
 function Pricing() {
   return (
-    <section id="pricing" className="border-t border-zinc-200 bg-white py-20 lg:py-28">
+    <section id="pricing" className="border-t border-zinc-200 bg-white py-14 lg:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-col items-center text-center mb-14">
+        <div className="flex flex-col items-center text-center mb-10">
           <span className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-3">
             Pricing
           </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight max-w-2xl leading-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight max-w-2xl leading-tight">
             Simple. Pay how you use it.
           </h2>
           <p className="text-[#475569] mt-4 max-w-xl">
@@ -396,13 +392,13 @@ function PriceRow({
 
 function FinalCta() {
   return (
-    <section className="border-t border-zinc-200 bg-[#0F172A] text-white py-20 lg:py-28">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center flex flex-col items-center gap-6">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight max-w-2xl leading-tight">
+    <section className="border-t border-zinc-200 bg-[#0F172A] text-white py-14 lg:py-20">
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center flex flex-col items-center gap-5">
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight max-w-2xl leading-tight">
           The next moment your guests share, you should own it.
         </h2>
-        <p className="text-lg text-zinc-300 max-w-xl">
-          Set up a QR for your space or event in two minutes. Pay nothing until you have a customer.
+        <p className="text-base text-zinc-300 max-w-xl">
+          Set up a QR in two minutes. Pay nothing until you have a customer.
         </p>
         <Link
           href="/login"
