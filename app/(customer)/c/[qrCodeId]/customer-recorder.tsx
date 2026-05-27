@@ -40,6 +40,7 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
   }, []);
 
   const [stage, setStage] = useState<Stage>('landing');
+  const [captureMode, setCaptureMode] = useState<'video' | 'photo'>('video');
   const recorder = useRecorder(support?.kind === 'ok' ? support.mimeType : 'video/webm');
   const upload = useUpload();
 
@@ -64,10 +65,13 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
     }
   }, [stage, upload.state]);
 
-  // Consent text shown above the Send button.
+  // Consent text shown above the Send button. Depends on what was captured
+  // (video vs photo) — falls back to the captureMode for the preview/permission
+  // stages where result isn't set yet.
+  const consentMediaType = recorder.result?.mediaType ?? captureMode;
   const consentText = useMemo(
-    () => renderConsentText(branding.businessName),
-    [branding.businessName]
+    () => renderConsentText(branding.businessName, consentMediaType),
+    [branding.businessName, consentMediaType]
   );
 
   // ---------- Branches that short-circuit the normal flow ----------
@@ -137,7 +141,13 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
       <RecordingStage
         recorder={recorder}
         branding={branding}
+        captureMode={captureMode}
+        onChangeMode={setCaptureMode}
         onStart={() => {
+          if (captureMode === 'photo') {
+            void recorder.capturePhoto().then(() => setStage('preview'));
+            return;
+          }
           recorder.startRecording();
           setStage('recording');
         }}
@@ -151,6 +161,8 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
       <RecordingStage
         recorder={recorder}
         branding={branding}
+        captureMode="video"
+        onChangeMode={() => {}}
         onStart={() => {}}
         showStartButton={false}
       />
@@ -172,11 +184,17 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
           if (!recorder.result) return;
           setStage('sending');
           try {
-            const thumb = await captureThumbnail(recorder.result.blob, 0.1);
+            // For photos the file IS the thumbnail — the finalize endpoint
+            // skips the thumbnail upload when mediaType === 'photo'.
+            const thumb =
+              recorder.result.mediaType === 'video'
+                ? await captureThumbnail(recorder.result.blob, 0.1)
+                : '';
             await upload.upload({
               qrCodeId,
               blob: recorder.result.blob,
               mimeType: recorder.result.mimeType,
+              mediaType: recorder.result.mediaType,
               durationMs: recorder.result.durationMs,
               width: recorder.result.width,
               height: recorder.result.height,
@@ -208,11 +226,15 @@ export function CustomerRecorder({ qrCodeId, locationLabel, branding }: Customer
               onClick={async () => {
                 if (!recorder.result) return;
                 upload.reset();
-                const thumb = await captureThumbnail(recorder.result.blob, 0.1);
+                const thumb =
+                  recorder.result.mediaType === 'video'
+                    ? await captureThumbnail(recorder.result.blob, 0.1)
+                    : '';
                 await upload.upload({
                   qrCodeId,
                   blob: recorder.result.blob,
                   mimeType: recorder.result.mimeType,
+                  mediaType: recorder.result.mediaType,
                   durationMs: recorder.result.durationMs,
                   width: recorder.result.width,
                   height: recorder.result.height,
@@ -299,11 +321,15 @@ function BrandingHeader({
 function RecordingStage({
   recorder,
   branding,
+  captureMode,
+  onChangeMode,
   onStart,
   showStartButton,
 }: {
   recorder: ReturnType<typeof useRecorder>;
   branding: Branding;
+  captureMode: 'video' | 'photo';
+  onChangeMode: (mode: 'video' | 'photo') => void;
   onStart: () => void;
   showStartButton: boolean;
 }) {
@@ -383,18 +409,41 @@ function RecordingStage({
         )}
       </div>
       {showStartButton && recorder.state === 'ready' && (
-        <button
-          type="button"
-          onClick={onStart}
-          aria-label="Start recording"
-          className="h-20 w-20 rounded-full bg-white border-4 flex items-center justify-center active:scale-95 transition-transform"
-          style={{ borderColor: branding.accentColor }}
-        >
-          <span
-            className="h-12 w-12 rounded-full"
-            style={{ backgroundColor: branding.accentColor }}
-          />
-        </button>
+        <>
+          {/* Photo / Video mode toggle */}
+          <div className="inline-flex items-center rounded-full bg-zinc-200 p-1 text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => onChangeMode('video')}
+              className={`px-4 py-1.5 rounded-full transition-colors ${captureMode === 'video' ? 'bg-white shadow-sm text-[#0F172A]' : 'text-[#475569]'}`}
+            >
+              Video
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeMode('photo')}
+              className={`px-4 py-1.5 rounded-full transition-colors ${captureMode === 'photo' ? 'bg-white shadow-sm text-[#0F172A]' : 'text-[#475569]'}`}
+            >
+              Photo
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={onStart}
+            aria-label={captureMode === 'photo' ? 'Take photo' : 'Start recording'}
+            className="h-20 w-20 rounded-full bg-white border-4 flex items-center justify-center active:scale-95 transition-transform"
+            style={{ borderColor: branding.accentColor }}
+          >
+            <span
+              className={captureMode === 'photo' ? 'h-14 w-14 rounded-full bg-white border-2' : 'h-12 w-12 rounded-full'}
+              style={{
+                backgroundColor: captureMode === 'photo' ? 'white' : branding.accentColor,
+                borderColor: captureMode === 'photo' ? branding.accentColor : 'transparent',
+              }}
+            />
+          </button>
+        </>
       )}
       {recorder.error?.kind === 'orientation' && (
         <p className="text-sm text-red-700">Please hold your phone upright (portrait).</p>
@@ -411,7 +460,7 @@ function PreviewStage({
   onSaveToDevice,
   onSend,
 }: {
-  result: { blob: Blob; mimeType: string };
+  result: { blob: Blob; mimeType: string; mediaType: 'video' | 'photo' };
   branding: Branding;
   consentText: string;
   onRetake: () => void;
@@ -430,13 +479,21 @@ function PreviewStage({
     <CenterPage>
       <BrandingHeader branding={branding} compact />
       <div className="w-full max-w-xs aspect-[9/16] overflow-hidden rounded-lg bg-black">
-        {url && (
+        {url && result.mediaType === 'video' && (
           <video
             src={url}
             autoPlay
             loop
             playsInline
             muted={false}
+            className="h-full w-full object-cover"
+          />
+        )}
+        {url && result.mediaType === 'photo' && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt="Captured photo preview"
             className="h-full w-full object-cover"
           />
         )}
@@ -467,7 +524,13 @@ function PreviewStage({
 function downloadBlob(blob: Blob, businessName: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const ext = blob.type.startsWith('video/mp4') ? 'mp4' : 'webm';
+  const ext = blob.type.startsWith('video/mp4')
+    ? 'mp4'
+    : blob.type.startsWith('video/webm')
+      ? 'webm'
+      : blob.type.startsWith('image/png')
+        ? 'png'
+        : 'jpg';
   a.href = url;
   a.download = `kollab-${businessName.replace(/[^a-z0-9-]+/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '')}.${ext}`;
   document.body.appendChild(a);

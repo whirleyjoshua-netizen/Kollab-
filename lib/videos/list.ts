@@ -7,6 +7,7 @@ export type InboxVideo = {
   thumbnailUrl: string | null;
   locationLabel: string | null;
   status: Database['public']['Enums']['video_status'];
+  mediaType: Database['public']['Enums']['media_type'];
   createdAt: string;
   durationMs: number | null;
 };
@@ -35,7 +36,7 @@ export async function fetchInboxPage(page = 0): Promise<InboxPage> {
 
   const { data: rows, error } = await supabase
     .from('videos')
-    .select('id, thumbnail_path, location_label_snapshot, status, created_at, duration_ms')
+    .select('id, thumbnail_path, location_label_snapshot, status, media_type, created_at, duration_ms')
     .eq('owner_id', userData.user.id)
     .eq('processing_status', 'ready')
     .is('deleted_at', null)
@@ -56,8 +57,11 @@ export async function fetchInboxPage(page = 0): Promise<InboxPage> {
     trimmed.map(async (row) => {
       let thumbnailUrl: string | null = null;
       if (row.thumbnail_path) {
+        // Photos store the file in the `videos` bucket and reuse it as the
+        // thumbnail. Videos have a separate JPEG in the `thumbnails` bucket.
+        const bucket = row.media_type === 'photo' ? 'videos' : 'thumbnails';
         const { data: signed } = await admin.storage
-          .from('thumbnails')
+          .from(bucket)
           .createSignedUrl(row.thumbnail_path, 60 * 60); // 1 hour
         thumbnailUrl = signed?.signedUrl ?? null;
       }
@@ -66,6 +70,7 @@ export async function fetchInboxPage(page = 0): Promise<InboxPage> {
         thumbnailUrl,
         locationLabel: row.location_label_snapshot,
         status: row.status,
+        mediaType: row.media_type,
         createdAt: row.created_at,
         durationMs: row.duration_ms,
       };

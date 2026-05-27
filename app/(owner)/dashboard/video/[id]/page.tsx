@@ -15,7 +15,7 @@ export default async function VideoDetailPage({ params }: Params) {
 
   const { data: video } = await supabase
     .from('videos')
-    .select('id, owner_id, storage_path, thumbnail_path, mime_type, duration_ms, status, created_at, location_label_snapshot, consent_text_snapshot, size_bytes, deleted_at')
+    .select('id, owner_id, storage_path, thumbnail_path, mime_type, media_type, duration_ms, status, created_at, location_label_snapshot, consent_text_snapshot, size_bytes, deleted_at')
     .eq('id', id)
     .maybeSingle();
 
@@ -51,6 +51,7 @@ export default async function VideoDetailPage({ params }: Params) {
         id: video.id,
         videoUrl: signed.signedUrl,
         mimeType: video.mime_type,
+        mediaType: video.media_type,
         durationMs: video.duration_ms,
         status: video.status,
         createdAt: video.created_at,

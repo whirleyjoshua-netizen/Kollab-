@@ -163,6 +163,7 @@ export type Database = {
           id: string
           ip_hash: string | null
           location_label_snapshot: string | null
+          media_type: Database["public"]["Enums"]["media_type"]
           mime_type: string
           owner_id: string
           processing_status: Database["public"]["Enums"]["video_processing_status"]
@@ -182,6 +183,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           location_label_snapshot?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"]
           mime_type: string
           owner_id: string
           processing_status?: Database["public"]["Enums"]["video_processing_status"]
@@ -201,6 +203,7 @@ export type Database = {
           id?: string
           ip_hash?: string | null
           location_label_snapshot?: string | null
+          media_type?: Database["public"]["Enums"]["media_type"]
           mime_type?: string
           owner_id?: string
           processing_status?: Database["public"]["Enums"]["video_processing_status"]
@@ -270,6 +273,7 @@ export type Database = {
     }
     Enums: {
       lead_interest: "restaurant" | "wedding" | "event" | "other"
+      media_type: "video" | "photo"
       video_processing_status: "uploading" | "ready" | "failed"
       video_status: "new" | "saved" | "hidden"
     }
@@ -403,6 +407,7 @@ export const Constants = {
   public: {
     Enums: {
       lead_interest: ["restaurant", "wedding", "event", "other"],
+      media_type: ["video", "photo"],
       video_processing_status: ["uploading", "ready", "failed"],
       video_status: ["new", "saved", "hidden"],
     },

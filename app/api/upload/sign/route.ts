@@ -10,8 +10,10 @@ const MAX_DURATION_MS = 31_000;             // 30s + 1s grace
 const RequestSchema = z.object({
   qrCodeId: z.string().min(1).max(64),
   mimeType: z.string().min(1).max(120),
+  mediaType: z.enum(['video', 'photo']).default('video'),
   sizeBytes: z.number().int().positive().max(MAX_BYTES),
-  durationMs: z.number().int().positive().max(MAX_DURATION_MS),
+  // For photos, durationMs is 0 and the upper-bound check shouldn't apply.
+  durationMs: z.number().int().min(0).max(MAX_DURATION_MS),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
 });
@@ -32,7 +34,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { qrCodeId, mimeType, sizeBytes, durationMs, width, height } = parsed.data;
+  const { qrCodeId, mimeType, mediaType, sizeBytes, durationMs, width, height } = parsed.data;
+
+  // Cross-check: mediaType vs mimeType.
+  if (mediaType === 'video' && !mimeType.startsWith('video/')) {
+    return NextResponse.json({ error: 'mediaType=video requires a video/* mime' }, { status: 400 });
+  }
+  if (mediaType === 'photo' && !mimeType.startsWith('image/')) {
+    return NextResponse.json({ error: 'mediaType=photo requires an image/* mime' }, { status: 400 });
+  }
 
   const admin = createAdminClient();
 
@@ -72,11 +82,12 @@ export async function POST(request: NextRequest) {
       qr_code_id: qr.id,
       storage_path: 'pending', // placeholder, updated next
       mime_type: mimeType,
+      media_type: mediaType,
       duration_ms: durationMs,
       width,
       height,
       size_bytes: sizeBytes,
-      consent_text_snapshot: renderConsentText(owner.business_name),
+      consent_text_snapshot: renderConsentText(owner.business_name, mediaType),
       location_label_snapshot: qr.location_label,
       processing_status: 'uploading',
       ip_hash: ipHash,
@@ -132,6 +143,9 @@ export async function POST(request: NextRequest) {
 function mimeTypeToExtension(mime: string): string | null {
   if (mime.startsWith('video/mp4')) return 'mp4';
   if (mime.startsWith('video/webm')) return 'webm';
+  if (mime.startsWith('image/jpeg')) return 'jpg';
+  if (mime.startsWith('image/png')) return 'png';
+  if (mime.startsWith('image/webp')) return 'webp';
   return null;
 }
 

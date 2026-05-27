@@ -24,6 +24,7 @@ type VideoDetailProps = {
     id: string;
     videoUrl: string;
     mimeType: string;
+    mediaType: 'video' | 'photo';
     durationMs: number | null;
     status: Status;
     createdAt: string;
@@ -103,13 +104,22 @@ export function VideoDetail({ video, businessName }: VideoDetailProps) {
 
       <div className="mx-auto grid max-w-4xl gap-6 px-4 py-6 md:grid-cols-[2fr,1fr]">
         <div className="overflow-hidden rounded-lg bg-black">
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-          <video
-            src={video.videoUrl}
-            controls
-            playsInline
-            className="w-full aspect-[9/16] object-contain"
-          />
+          {video.mediaType === 'video' ? (
+            // eslint-disable-next-line jsx-a11y/media-has-caption
+            <video
+              src={video.videoUrl}
+              controls
+              playsInline
+              className="w-full aspect-[9/16] object-contain"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={video.videoUrl}
+              alt="Submitted photo"
+              className="w-full aspect-[9/16] object-contain"
+            />
+          )}
         </div>
 
         <aside className="flex flex-col gap-4">

@@ -18,9 +18,12 @@ export type RecorderError =
   | { kind: 'orientation' }
   | { kind: 'other'; message: string };
 
+export type MediaKind = 'video' | 'photo';
+
 export type RecorderResult = {
   blob: Blob;
   mimeType: string;
+  mediaType: MediaKind;
   durationMs: number;
   width: number;
   height: number;
@@ -148,7 +151,7 @@ export function useRecorder(mimeType: string) {
       const width = settings?.width ?? 1080;
       const height = settings?.height ?? 1920;
       const durationMs = Math.min(MAX_DURATION_MS, Date.now() - startedAtRef.current);
-      setResult({ blob, mimeType, durationMs, width, height });
+      setResult({ blob, mimeType, mediaType: 'video', durationMs, width, height });
       setState('stopped');
     };
 
@@ -185,6 +188,52 @@ export function useRecorder(mimeType: string) {
   }, []);
 
   /**
+   * Capture a still photo from the current live-preview frame. Encodes to JPEG.
+   * No audio. Sets the same `result` shape as video recording so downstream
+   * preview/upload code only branches on `result.mediaType`.
+   */
+  const capturePhoto = useCallback(async (): Promise<void> => {
+    const stream = streamRef.current;
+    const videoEl = videoElRef.current;
+    if (!stream || !videoEl) return;
+
+    const videoTrack = stream.getVideoTracks()[0];
+    const settings = videoTrack?.getSettings();
+    const width = videoEl.videoWidth || settings?.width || 1080;
+    const height = videoEl.videoHeight || settings?.height || 1920;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setError({ kind: 'other', message: 'Could not capture photo' });
+      setState('error');
+      return;
+    }
+    ctx.drawImage(videoEl, 0, 0, width, height);
+
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob(resolve, 'image/jpeg', 0.92),
+    );
+    if (!blob) {
+      setError({ kind: 'other', message: 'Could not encode photo' });
+      setState('error');
+      return;
+    }
+
+    setResult({
+      blob,
+      mimeType: 'image/jpeg',
+      mediaType: 'photo',
+      durationMs: 0,
+      width,
+      height,
+    });
+    setState('stopped');
+  }, []);
+
+  /**
    * Reset internal state so the next recording can begin. NOTE: this does
    * NOT re-acquire the camera stream. If cleanup() ran (e.g., on a stream
    * error or after permission was revoked), call requestPermission() again
@@ -207,6 +256,7 @@ export function useRecorder(mimeType: string) {
     attachPreview,
     requestPermission,
     switchCamera,
+    capturePhoto,
     startRecording,
     stopRecording,
     reset,

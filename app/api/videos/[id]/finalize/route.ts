@@ -3,8 +3,11 @@ import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { verifyFinalizeToken } from '@/lib/upload/finalize-token';
 
+// For videos we expect a JPEG data URL thumbnail. For photos the photo itself
+// is the thumbnail so an empty string is acceptable.
 const RequestSchema = z.object({
-  thumbnailDataUrl: z.string().regex(/^data:image\/jpeg;base64,/),
+  thumbnailDataUrl: z.string(),
+  mediaType: z.enum(['video', 'photo']).default('video'),
   finalizeToken: z.string().min(1),
 });
 
@@ -32,13 +35,16 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Invalid or expired finalize token' }, { status: 401 });
   }
 
+  // For videos, we require the JPEG thumbnail data URL. Validate that here.
+  if (parsed.data.mediaType === 'video' && !/^data:image\/jpeg;base64,/.test(parsed.data.thumbnailDataUrl)) {
+    return NextResponse.json({ error: 'Video finalize requires a JPEG thumbnail data URL' }, { status: 400 });
+  }
+
   const admin = createAdminClient();
 
-  // Look up the video to find the owner (for thumbnail path) and confirm
-  // it's still in the 'uploading' state.
   const { data: video } = await admin
     .from('videos')
-    .select('id, owner_id, processing_status')
+    .select('id, owner_id, storage_path, processing_status, media_type')
     .eq('id', id)
     .maybeSingle();
 
@@ -46,7 +52,6 @@ export async function POST(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
   if (video.processing_status !== 'uploading') {
-    // Idempotent: if already 'ready', no-op success. If 'failed', reject.
     if (video.processing_status === 'ready') {
       return NextResponse.json({ ok: true });
     }
@@ -56,26 +61,35 @@ export async function POST(request: NextRequest, { params }: Params) {
     );
   }
 
-  // Decode the thumbnail base64 into a buffer.
-  const base64 = parsed.data.thumbnailDataUrl.replace(/^data:image\/jpeg;base64,/, '');
-  const thumbBytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  const thumbnailPath = `${video.owner_id}/${video.id}.jpg`;
+  let thumbnailPath: string;
 
-  const { error: thumbUploadError } = await admin.storage
-    .from('thumbnails')
-    .upload(thumbnailPath, thumbBytes, {
-      contentType: 'image/jpeg',
-      upsert: true,
-    });
+  if (parsed.data.mediaType === 'photo') {
+    // Photos don't need a separate thumbnail — the uploaded file IS the
+    // thumbnail. Point thumbnail_path at the same storage_path. The owner
+    // inbox uses signed URLs from whatever bucket is on the path, so we
+    // also leave the actual photo bytes in the `videos` bucket.
+    thumbnailPath = video.storage_path;
+  } else {
+    // Decode the JPEG thumbnail and upload it.
+    const base64 = parsed.data.thumbnailDataUrl.replace(/^data:image\/jpeg;base64,/, '');
+    const thumbBytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    thumbnailPath = `${video.owner_id}/${video.id}.jpg`;
 
-  if (thumbUploadError) {
-    return NextResponse.json(
-      { error: `Thumbnail upload failed: ${thumbUploadError.message}` },
-      { status: 500 }
-    );
+    const { error: thumbUploadError } = await admin.storage
+      .from('thumbnails')
+      .upload(thumbnailPath, thumbBytes, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+    if (thumbUploadError) {
+      return NextResponse.json(
+        { error: `Thumbnail upload failed: ${thumbUploadError.message}` },
+        { status: 500 }
+      );
+    }
   }
 
-  // Flip to 'ready' and persist the thumbnail path.
   const { error: updateError } = await admin
     .from('videos')
     .update({

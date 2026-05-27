@@ -6,9 +6,12 @@ export type UploadInput = {
   qrCodeId: string;
   blob: Blob;
   mimeType: string;
+  mediaType: 'video' | 'photo';
   durationMs: number;
   width: number;
   height: number;
+  // For photos, this is empty string — the photo itself becomes the thumbnail
+  // and the finalize endpoint handles that case.
   thumbnailDataUrl: string;
 };
 
@@ -38,6 +41,7 @@ export function useUpload(): UploadHook {
         body: JSON.stringify({
           qrCodeId: input.qrCodeId,
           mimeType: input.mimeType,
+          mediaType: input.mediaType,
           sizeBytes: input.blob.size,
           durationMs: input.durationMs,
           width: input.width,
@@ -86,6 +90,7 @@ export function useUpload(): UploadHook {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           thumbnailDataUrl: input.thumbnailDataUrl,
+          mediaType: input.mediaType,
           finalizeToken,
         }),
       });

@@ -63,9 +63,10 @@ export function InboxGrid({ initial }: InboxGridProps) {
 
 function InboxTile({ video }: { video: InboxVideo }) {
   const durationLabel =
-    video.durationMs && video.durationMs > 0
+    video.mediaType === 'video' && video.durationMs && video.durationMs > 0
       ? `${Math.round(video.durationMs / 1000)}s`
       : null;
+  const isPhoto = video.mediaType === 'photo';
 
   return (
     <Link
@@ -92,6 +93,11 @@ function InboxTile({ video }: { video: InboxVideo }) {
         {durationLabel && (
           <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
             {durationLabel}
+          </div>
+        )}
+        {isPhoto && (
+          <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+            PHOTO
           </div>
         )}
       </div>

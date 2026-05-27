@@ -78,9 +78,17 @@ export async function getDownloadUrl(videoId: string, businessName: string): Pro
   const check = await getOwnerAndVerifyVideo(videoId);
   if ('error' in check) return { status: 'error', message: check.error };
 
-  const ext = check.mimeType.startsWith('video/mp4') ? 'mp4' : 'webm';
+  const ext = check.mimeType.startsWith('video/mp4')
+    ? 'mp4'
+    : check.mimeType.startsWith('video/webm')
+      ? 'webm'
+      : check.mimeType.startsWith('image/png')
+        ? 'png'
+        : check.mimeType.startsWith('image/webp')
+          ? 'webp'
+          : 'jpg';
   const slug = businessName.replace(/[^a-z0-9-]+/gi, '-').toLowerCase().replace(/-+/g, '-').replace(/^-|-$/g, '');
-  const filename = `kollab-${slug || 'video'}-${videoId.slice(0, 8)}.${ext}`;
+  const filename = `kollab-${slug || 'kollab'}-${videoId.slice(0, 8)}.${ext}`;
 
   const admin = createAdminClient();
   const { data: signed, error: signError } = await admin.storage
