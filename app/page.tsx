@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LeadForm } from '@/components/lead-form';
 
 const KOLLAB_ACCENT = '#FF5C39';
 
@@ -9,7 +10,7 @@ export default function HomePage() {
       <Hero />
       <HowItWorks />
       <UseCases />
-      <Pricing />
+      <ContactSection />
       <FinalCta />
       <Footer />
     </main>
@@ -36,7 +37,7 @@ function Nav() {
         <nav className="hidden md:flex items-center gap-8 text-sm text-[#475569]">
           <a href="#how-it-works" className="hover:text-[#0F172A] transition-colors">How it works</a>
           <a href="#who-its-for" className="hover:text-[#0F172A] transition-colors">Who it&apos;s for</a>
-          <a href="#pricing" className="hover:text-[#0F172A] transition-colors">Pricing</a>
+          <a href="#contact" className="hover:text-[#0F172A] transition-colors">Get started</a>
         </nav>
         <div className="flex items-center gap-2">
           <Link
@@ -45,13 +46,13 @@ function Nav() {
           >
             Sign in
           </Link>
-          <Link
-            href="/login"
+          <a
+            href="#contact"
             className="text-sm font-medium px-4 py-2 rounded-md text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: KOLLAB_ACCENT }}
           >
-            Get Kollab
-          </Link>
+            Request a demo
+          </a>
         </div>
       </div>
     </header>
@@ -88,13 +89,13 @@ function Hero() {
             </p>
 
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link
-                href="/login"
+              <a
+                href="#contact"
                 className="inline-flex items-center justify-center rounded-md px-6 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 shadow-sm"
                 style={{ backgroundColor: KOLLAB_ACCENT }}
               >
-                Get started — it&apos;s $0 to set up
-              </Link>
+                Request a demo
+              </a>
               <a
                 href="#how-it-works"
                 className="inline-flex items-center justify-center rounded-md border border-zinc-200 bg-white px-6 py-3 text-base font-medium text-[#0F172A] transition-colors hover:bg-zinc-100"
@@ -282,9 +283,35 @@ function UseCaseCard({
 }
 
 // ---------------------------------------------------------------------
-// Pricing
+// Contact / Lead form
 // ---------------------------------------------------------------------
 
+function ContactSection() {
+  return (
+    <section id="contact" className="border-t border-zinc-200 bg-white py-14 lg:py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="flex flex-col items-center text-center mb-8">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#475569] mb-3">
+            Get started
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight max-w-2xl leading-tight">
+            Tell us about your spot or event.
+          </h2>
+          <p className="text-[#475569] mt-3 max-w-xl">
+            We&apos;ll get back to you within a day with pricing tailored to your size and use case, and set you up with a working QR.
+          </p>
+        </div>
+        <LeadForm />
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Pricing (unused — kept for reference; we now route everyone through ContactSection)
+// ---------------------------------------------------------------------
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function Pricing() {
   return (
     <section id="pricing" className="border-t border-zinc-200 bg-white py-14 lg:py-20">
@@ -398,15 +425,15 @@ function FinalCta() {
           The next moment your guests share, you should own it.
         </h2>
         <p className="text-base text-zinc-300 max-w-xl">
-          Set up a QR in two minutes. Pay nothing until you have a customer.
+          Tell us about your spot or event. We&apos;ll set you up with a working QR within a day.
         </p>
-        <Link
-          href="/login"
+        <a
+          href="#contact"
           className="inline-flex items-center justify-center rounded-md px-7 py-3.5 text-base font-semibold text-white transition-opacity hover:opacity-90 shadow-lg"
           style={{ backgroundColor: KOLLAB_ACCENT }}
         >
-          Get Kollab
-        </Link>
+          Request a demo
+        </a>
       </div>
     </section>
   );

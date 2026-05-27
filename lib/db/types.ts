@@ -39,6 +39,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      leads: {
+        Row: {
+          business_or_event: string | null
+          contacted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          interest: Database["public"]["Enums"]["lead_interest"]
+          ip_hash: string | null
+          message: string | null
+          name: string
+          source_url: string | null
+        }
+        Insert: {
+          business_or_event?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          interest?: Database["public"]["Enums"]["lead_interest"]
+          ip_hash?: string | null
+          message?: string | null
+          name: string
+          source_url?: string | null
+        }
+        Update: {
+          business_or_event?: string | null
+          contacted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: Database["public"]["Enums"]["lead_interest"]
+          ip_hash?: string | null
+          message?: string | null
+          name?: string
+          source_url?: string | null
+        }
+        Relationships: []
+      }
       owners: {
         Row: {
           accent_color: string
@@ -230,6 +269,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      lead_interest: "restaurant" | "wedding" | "event" | "other"
       video_processing_status: "uploading" | "ready" | "failed"
       video_status: "new" | "saved" | "hidden"
     }
@@ -362,6 +402,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      lead_interest: ["restaurant", "wedding", "event", "other"],
       video_processing_status: ["uploading", "ready", "failed"],
       video_status: ["new", "saved", "hidden"],
     },
